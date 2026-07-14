@@ -3,6 +3,7 @@ const router = express.Router();
 const verifyToken = require('../middlewares/verifyToken');
 const verifyCreator = require('../middlewares/verifyCreator');
 const verifyAdmin = require('../middlewares/verifyAdmin');
+const verifySupporter = require('../middlewares/verifySupporter');
 
 // Creator's own campaign stats — total/active campaign count, total raised
 router.get(
@@ -50,5 +51,34 @@ router.get('/admin-stats', verifyToken, verifyAdmin, async (req, res) => {
 
   res.send({ totalSupporters, totalCreators, totalCredits, totalPayments });
 });
+
+// Supporter's own contribution stats — total/pending contributions, total amount contributed
+router.get(
+  '/supporter-stats/:email',
+  verifyToken,
+  verifySupporter,
+  async (req, res) => {
+    const { email } = req.params;
+
+    if (req.decoded.email !== email) {
+      return res.status(403).send({ message: 'Forbidden access' });
+    }
+
+    const contributionsCollection = req.app.locals.collections.contributions;
+    const contributions = await contributionsCollection
+      .find({ supporter_email: email })
+      .toArray();
+
+    const totalContributions = contributions.length;
+    const pendingContributions = contributions.filter(
+      c => c.status === 'pending',
+    ).length;
+    const totalContributed = contributions
+      .filter(c => c.status === 'approved')
+      .reduce((sum, c) => sum + c.contribution_amount, 0);
+
+    res.send({ totalContributions, pendingContributions, totalContributed });
+  },
+);
 
 module.exports = router;
