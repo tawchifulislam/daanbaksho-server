@@ -5,7 +5,7 @@ const verifyCreator = require('../middlewares/verifyCreator');
 const verifyAdmin = require('../middlewares/verifyAdmin');
 const verifySupporter = require('../middlewares/verifySupporter');
 
-// Creator's own campaign stats — total/active campaign count, total raised
+// Creator's own campaign stats - total/active campaign count, total raised
 router.get(
   '/creator-stats/:email',
   verifyToken,
@@ -52,7 +52,7 @@ router.get('/admin-stats', verifyToken, verifyAdmin, async (req, res) => {
   res.send({ totalSupporters, totalCreators, totalCredits, totalPayments });
 });
 
-// Supporter's own contribution stats — total/pending contributions, total amount contributed
+// Supporter's own contribution stats - total/pending contributions, total amount contributed
 router.get(
   '/supporter-stats/:email',
   verifyToken,

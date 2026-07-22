@@ -4,7 +4,7 @@ const { ObjectId } = require('mongodb');
 const verifyToken = require('../middlewares/verifyToken');
 const verifyAdmin = require('../middlewares/verifyAdmin');
 
-// Get a single user's info (role, credits, etc.) — only the user themself can access
+// Get a single user's info (role, credits, etc.) - only the user themself can access
 router.get('/:email', verifyToken, async (req, res) => {
   const { email } = req.params;
 

@@ -5,7 +5,7 @@ const verifyToken = require('../middlewares/verifyToken');
 const verifyCreator = require('../middlewares/verifyCreator');
 const verifyAdmin = require('../middlewares/verifyAdmin');
 
-// Create a new campaign — status starts as "pending" until admin approval
+// Create a new campaign - status starts as "pending" until admin approval
 router.post('/', verifyToken, verifyCreator, async (req, res) => {
   const campaign = req.body;
 
@@ -27,7 +27,7 @@ router.post('/', verifyToken, verifyCreator, async (req, res) => {
   res.send(result);
 });
 
-// Top 6 approved campaigns by raised amount — used on the homepage
+// Top 6 approved campaigns by raised amount - used on the homepage
 router.get('/top-funded', async (req, res) => {
   const campaignsCollection = req.app.locals.collections.campaigns;
   const topCampaigns = await campaignsCollection
@@ -69,23 +69,27 @@ router.get('/creator/:email', verifyToken, verifyCreator, async (req, res) => {
   res.send(campaigns);
 });
 
-// Public list — approved campaigns with an active deadline, paginated, optional category filter
+// Public list - approved campaigns with an active deadline, paginated, optional category filter
 router.get('/', async (req, res) => {
   const { category, page = 1, limit = 9 } = req.query;
   const campaignsCollection = req.app.locals.collections.campaigns;
 
-  const query = {
-    status: 'approved',
-    deadline: { $gte: new Date().toISOString() },
-  };
+  const query = { status: 'approved' };
   if (category) query.category = category;
 
   const skip = (Number(page) - 1) * Number(limit);
 
-  const [campaigns, total] = await Promise.all([
-    campaignsCollection.find(query).skip(skip).limit(Number(limit)).toArray(),
-    campaignsCollection.countDocuments(query),
-  ]);
+  const allMatching = await campaignsCollection.find(query).toArray();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const activeCampaigns = allMatching.filter(
+    c => new Date(c.deadline) >= today,
+  );
+
+  const total = activeCampaigns.length;
+  const campaigns = activeCampaigns.slice(skip, skip + Number(limit));
 
   res.send({ campaigns, total });
 });
@@ -135,10 +139,10 @@ router.patch('/:id/status', verifyToken, verifyAdmin, async (req, res) => {
   res.send({ message: `Campaign ${status}` });
 });
 
-// Update campaign — only title, story, and reward_info are editable, owner only
+// Update campaign - only title, story, and reward_info are editable, owner only
 router.patch('/:id', verifyToken, verifyCreator, async (req, res) => {
   const { id } = req.params;
-  const { title, story, reward_info } = req.body;
+  const { title, story, reward_info, deadline, image_url } = req.body;
 
   const campaignsCollection = req.app.locals.collections.campaigns;
   const campaign = await campaignsCollection.findOne({ _id: new ObjectId(id) });
@@ -150,15 +154,20 @@ router.patch('/:id', verifyToken, verifyCreator, async (req, res) => {
     return res.status(403).send({ message: 'Forbidden access' });
   }
 
+  const updateFields = { title, story, reward_info, deadline };
+  if (image_url) {
+    updateFields.image_url = image_url;
+  }
+
   const result = await campaignsCollection.updateOne(
     { _id: new ObjectId(id) },
-    { $set: { title, story, reward_info } },
+    { $set: updateFields },
   );
 
   res.send(result);
 });
 
-// Delete campaign — owner or admin, refunds all approved supporters
+// Delete campaign - owner or admin, refunds all approved supporters
 router.delete('/:id', verifyToken, async (req, res) => {
   const { id } = req.params;
   const collections = req.app.locals.collections;

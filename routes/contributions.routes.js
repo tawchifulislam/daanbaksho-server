@@ -5,7 +5,7 @@ const verifyToken = require('../middlewares/verifyToken');
 const verifySupporter = require('../middlewares/verifySupporter');
 const verifyCreator = require('../middlewares/verifyCreator');
 
-// Supporter creates a new contribution — deducts credits immediately, holds status as pending
+// Supporter creates a new contribution - deducts credits immediately, holds status as pending
 router.post('/', verifyToken, verifySupporter, async (req, res) => {
   const contribution = req.body;
   const collections = req.app.locals.collections;
@@ -79,7 +79,7 @@ router.get('/creator/:email', verifyToken, verifyCreator, async (req, res) => {
   res.send(contributions);
 });
 
-// Creator approves a contribution — adds amount to campaign's raised total
+// Creator approves a contribution - adds amount to campaign's raised total
 router.patch('/:id/approve', verifyToken, verifyCreator, async (req, res) => {
   const { id } = req.params;
   const collections = req.app.locals.collections;
@@ -114,7 +114,7 @@ router.patch('/:id/approve', verifyToken, verifyCreator, async (req, res) => {
   res.send({ message: 'Contribution approved' });
 });
 
-// Creator rejects a contribution — refunds the supporter's credits
+// Creator rejects a contribution - refunds the supporter's credits
 router.patch('/:id/reject', verifyToken, verifyCreator, async (req, res) => {
   const { id } = req.params;
   const collections = req.app.locals.collections;
@@ -179,7 +179,7 @@ router.get(
   },
 );
 
-// Supporter: only approved contributions — used on the supporter home page
+// Supporter: only approved contributions - used on the supporter home page
 router.get(
   '/supporter/:email/approved',
   verifyToken,

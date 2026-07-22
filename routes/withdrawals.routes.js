@@ -5,7 +5,7 @@ const verifyToken = require('../middlewares/verifyToken');
 const verifyCreator = require('../middlewares/verifyCreator');
 const verifyAdmin = require('../middlewares/verifyAdmin');
 
-// Creator requests a withdrawal — minimum 200 credits ($10), 20 credits = $1
+// Creator requests a withdrawal - minimum 200 credits ($10), 20 credits = $1
 router.post('/', verifyToken, verifyCreator, async (req, res) => {
   const withdrawal = req.body;
   const collections = req.app.locals.collections;
@@ -90,7 +90,7 @@ router.get('/', verifyToken, verifyAdmin, async (req, res) => {
   res.send(withdrawals);
 });
 
-// Admin marks a withdrawal as paid — notifies the creator
+// Admin marks a withdrawal as paid - notifies the creator
 router.patch('/:id/approve', verifyToken, verifyAdmin, async (req, res) => {
   const { id } = req.params;
   const collections = req.app.locals.collections;
